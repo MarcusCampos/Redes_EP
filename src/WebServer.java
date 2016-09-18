@@ -4,10 +4,10 @@ import java.net.Socket;
 import java.util.StringTokenizer;
 
 
-public class WebServerFinal {
+public class WebServer {
 	public static void main(String arvg[]) throws Exception {
 		// Ajusta o número da porta.
-		int port = 6787;
+		int port = 6789;
 		
 		// Estabelece o socket de escuta.
 		ServerSocket servidor = new ServerSocket(port);
@@ -45,6 +45,7 @@ final class HttpRequest implements Runnable {
 			processRequest();
 		} catch (Exception e) {
 			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 
@@ -123,7 +124,9 @@ final class HttpRequest implements Runnable {
 			statusLine= "HTTP/1.1 200 OK";
 			contentTypeLine = "Content-type: " + contentType(fileName) + CRLF;
 			header = contentTypeLine;
-			if (authorization == null) {
+			
+			if (authorization == null || !authorization.equals("YWRtaW46YWRtaW4=")) {
+				"YWRtaW46WRtaW4=".equals(authorization));
 				statusLine = "HTTP/1.1 401 Unauthorized";
 				header += "WWW-Authenticate: Basic realm=\"WallyWorld\"";
 			}
