@@ -4,7 +4,7 @@ import java.net.Socket;
 import java.util.StringTokenizer;
 
 
-public class WebServer {
+public class WebServerFinal {
 	public static void main(String arvg[]) throws Exception {
 		// Ajusta o número da porta.
 		int port = 6787;
@@ -12,8 +12,8 @@ public class WebServer {
 		// Estabelece o socket de escuta.
 		ServerSocket servidor = new ServerSocket(port);
 		//Esta funcionando no localhost - 127.0.0.1
-		//porta 6787
-		//para testar: http://127.0.0.1:6787
+		//porta 6789
+		//para testar: http://127.0.0.1:6789
 		
 		// Processa a requisição de serviço HTTP em um laço infinito.
 		while (true)  {
@@ -73,6 +73,7 @@ final class HttpRequest implements Runnable {
 		}
 		return "application/octet-stream";
 	}
+	
 	private void processRequest() throws Exception {
 		// Obtem uma referência para os trechos de entrada e saída do socket.
 		InputStream is = socket.getInputStream();
@@ -90,7 +91,11 @@ final class HttpRequest implements Runnable {
 		
 		// Obtem e exibir as linhas de cabeçalho.
 		String headerLine = null;
+		String authorization = null;
 		while ((headerLine = br.readLine()).length() != 0) {
+			if (headerLine.contains("Authorization")) {
+				authorization = headerLine.split(" ")[2];
+			}
 			System.out.println(headerLine);
 		}
 		
@@ -113,11 +118,18 @@ final class HttpRequest implements Runnable {
 		String statusLine = null;
 		String contentTypeLine = null;
 		String entityBody = null;
+		String header = null;
 		if (fileExists){
-			statusLine= "HTTP/1.1 200 OK"; 
+			statusLine= "HTTP/1.1 200 OK";
 			contentTypeLine = "Content-type: " + contentType(fileName) + CRLF;
+			header = contentTypeLine;
+			if (authorization == null) {
+				statusLine = "HTTP/1.1 401 Unauthorized";
+				header += "WWW-Authenticate: Basic realm=\"WallyWorld\"";
+			}
+			
 			os.writeBytes(statusLine);
-			os.writeBytes(contentTypeLine);
+			os.writeBytes(header);
 			os.writeBytes(CRLF);
 			sendBytes(fis, os);
 			fis.close();
@@ -125,9 +137,9 @@ final class HttpRequest implements Runnable {
 		else{
 			statusLine = "HTTP/1.1 404 Not Found";
 			contentTypeLine = "Content-type: " + contentType(fileName) + CRLF; // Não sei se está certo
-			entityBody = "<HTML><HEAD><TITTLE>Not Found</TITTLE></HEAD><BODY><p>Not Found</p></BODY></HTML>";
+			entityBody = "<html><head><title>Not Found</title></head><body><p>Not Found</p></body></html>";
 			os.writeBytes(statusLine);
-			os.writeBytes(contentTypeLine);
+			os.writeBytes(contentTypeLine);// oq enviamos no content desse caso?
 			os.writeBytes(CRLF);
 			os.writeBytes(entityBody);
 		}
